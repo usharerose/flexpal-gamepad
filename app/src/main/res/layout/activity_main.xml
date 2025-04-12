@@ -1,20 +1,31 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
     <TextView
-        android:id="@+id/coordinates_text"
+        android:id="@+id/titleTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/joystick_view"
-        android:layout_centerHorizontal="true"
-        android:text="Coordinates: (0, 0)"
-        android:textSize="18sp"
-        android:padding="16dp"/>
+        android:text="@string/title_text"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp"
+        android:gravity="center" />
 
-    <io.github.usharerose.flexpal.gamepad.android.JoystickView
-        android:id="@+id/joystick_view"
-        android:layout_width="300dp"
-        android:layout_height="300dp"
-        android:layout_centerInParent="true"/>
-</RelativeLayout>
+    <!-- <include
+        layout="@layout/chamber_input" /> -->
+    <LinearLayout
+        android:id="@+id/slidersContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" />
+
+    <TextView
+        android:id="@+id/valuesTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Values: "
+        android:textSize="18sp"
+        android:layout_marginBottom="16dp" />
+</LinearLayout>
