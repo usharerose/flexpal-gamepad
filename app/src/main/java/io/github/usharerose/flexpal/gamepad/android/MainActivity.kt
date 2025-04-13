@@ -1,17 +1,16 @@
 package io.github.usharerose.flexpal.gamepad.android
 
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
-import android.view.LayoutInflater
 import android.widget.EditText
 import android.widget.LinearLayout
-import android.widget.SeekBar
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
+
+    companion object {
+        const val CHAMBER_COUNT = 9
+    }
 
     private lateinit var slidersContainer: LinearLayout
     private val editTextList = mutableListOf<EditText>()
@@ -22,63 +21,45 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         slidersContainer = findViewById<LinearLayout>(R.id.slidersContainer)
-        val numberOfSliders = 9
-        for (i in 1..numberOfSliders) {
-            addSliderWithEditText()
+        for (i in 1..CHAMBER_COUNT) {
+            appendChamberInputView()
         }
 
         valuesTextView = findViewById<TextView>(R.id.valuesTextView)
-        updateValuesTextView()
+        updateValuesDisplay()
     }
 
-    private fun addSliderWithEditText() {
-        val inflater = LayoutInflater.from(this)
-        val layout = inflater.inflate(R.layout.chamber_input, slidersContainer, false)
-
-        // 获取 SeekBar 和 EditText
-        val seekBar: SeekBar = layout.findViewById(R.id.seekBar)
-        seekBar.progress = 50
-        val editText: EditText = layout.findViewById(R.id.editText)
-        val initialValue = seekBar.progress - 50
-        editText.setText(initialValue.toString())
-        editTextList.add(editText)
-
-        seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                val value = progress - 50
-                editText.setText(value.toString())
-                updateValuesTextView()
+    private fun appendChamberInputView() {
+        val sliderEditTextView = ChamberInputView(this).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                setMargins(0, 8, 0, 8)
             }
 
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-        })
-
-        editText.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                val inputValue = s.toString().toIntOrNull()
-                if (inputValue != null) {
-                    if (inputValue in -50..50) {
-                        val progress = inputValue + 50
-                        seekBar.progress = progress
-                    } else {
-                        Toast.makeText(this@MainActivity, "The value range is between -50 to 50", Toast.LENGTH_SHORT).show()
-                    }
-                } else {
-                    seekBar.progress = 50
+            setOnValueChangeListener(object : ChamberInputView.OnValueChangeListener {
+                override fun onValueChanged() {
+                    updateValuesDisplay()
                 }
-                updateValuesTextView()
-            }
+            })
+        }
 
-            override fun afterTextChanged(s: Editable?) {}
-        })
-
-        slidersContainer.addView(layout)
+        slidersContainer.addView(sliderEditTextView)
     }
 
-    private fun updateValuesTextView() {
-        val values = editTextList.map { it.text.toString() }
-        valuesTextView.text = "Values: ${values.joinToString(", ")}"
+    private fun updateValuesDisplay() {
+        val values = getAllValues()
+        valuesTextView.text = getString(
+            R.string.chamber_inputs,
+            values.joinToString(", ")
+        )
+    }
+
+    private fun getAllValues(): List<Int> {
+        return (0 until slidersContainer.childCount).map { index ->
+            val chamberInputView = slidersContainer.getChildAt(index) as ChamberInputView
+            chamberInputView.getValue()
+        }
     }
 }
