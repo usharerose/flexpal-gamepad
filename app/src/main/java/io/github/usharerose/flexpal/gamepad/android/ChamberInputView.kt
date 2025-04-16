@@ -28,6 +28,7 @@ class ChamberInputView @JvmOverloads constructor(
     }
 
     private var valueChangeListener: OnValueChangeListener? = null
+    private var isUpdating = false
 
     fun setOnValueChangeListener(listener: OnValueChangeListener) {
         valueChangeListener = listener
@@ -38,17 +39,17 @@ class ChamberInputView @JvmOverloads constructor(
         inflater.inflate(R.layout.chamber_input, this, true)
 
         editText = findViewById(R.id.editText)
-        val initialValue = (MAX_VAL - MIN_VAL) / 2 + MIN_VAL
-        editText.setText(initialValue.toString())
-
         seekBar = findViewById(R.id.seekBar)
-        seekBar.progress = inputValueToProgress(initialValue)
+        val initialValue = (MAX_VAL - MIN_VAL) / 2 + MIN_VAL
+        setInputValue(initialValue)
 
         seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                val inputValue = progressToInputValue(progress)
-                editText.setText(inputValue.toString())
-                valueChangeListener?.onValueChanged()
+                if (fromUser) {
+                    val inputValue = progressToInputValue(progress)
+                    setInputValue(inputValue)
+                    valueChangeListener?.onValueChanged()
+                }
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
@@ -58,11 +59,13 @@ class ChamberInputView @JvmOverloads constructor(
         editText.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                if (isUpdating) return
+
                 val inputValue = s.toString().toIntOrNull()
                 if (inputValue != null) {
                     if (inputValue in MIN_VAL..MAX_VAL) {
-                        val progress = inputValueToProgress(inputValue)
-                        seekBar.progress = progress
+                        setInputValue(inputValue)
+                        valueChangeListener?.onValueChanged()
                     } else {
                         Toast.makeText(
                             context,
@@ -71,9 +74,9 @@ class ChamberInputView @JvmOverloads constructor(
                         ).show()
                     }
                 } else {
-                    seekBar.progress = inputValueToProgress(initialValue)
+                    setInputValue(initialValue)
+                    valueChangeListener?.onValueChanged()
                 }
-                valueChangeListener?.onValueChanged()
             }
 
             override fun afterTextChanged(s: Editable?) {}
@@ -90,5 +93,15 @@ class ChamberInputView @JvmOverloads constructor(
 
     fun getValue(): Int {
         return editText.text.toString().toInt()
+    }
+
+    private fun setInputValue(inputValue: Int) {
+        isUpdating = true
+        try {
+            editText.setText(inputValue.toString())
+            seekBar.progress = inputValueToProgress(inputValue)
+        } finally {
+            isUpdating = false
+        }
     }
 }
