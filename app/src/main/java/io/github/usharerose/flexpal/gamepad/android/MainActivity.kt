@@ -1,7 +1,6 @@
 package io.github.usharerose.flexpal.gamepad.android
 
 import android.os.Bundle
-import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -13,8 +12,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private lateinit var slidersContainer: LinearLayout
-    private val editTextList = mutableListOf<EditText>()
     private lateinit var valuesTextView: TextView
+    private val udpManager = UdpManager.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,6 +26,11 @@ class MainActivity : AppCompatActivity() {
 
         valuesTextView = findViewById<TextView>(R.id.valuesTextView)
         updateValuesDisplay()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        udpManager.release()
     }
 
     private fun appendChamberInputView() {
@@ -54,6 +58,9 @@ class MainActivity : AppCompatActivity() {
             R.string.chamber_inputs,
             values.joinToString(", ")
         )
+        val message = ProtocolMessage.PressureMessage(values)
+        val encodedMessage = ProtocolEncoder().encode(message)
+        udpManager.sendMessage(encodedMessage)
     }
 
     private fun getAllValues(): List<Int> {
