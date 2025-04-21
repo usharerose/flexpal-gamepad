@@ -21,11 +21,11 @@ class MainActivity : AppCompatActivity() {
 
         slidersContainer = findViewById<LinearLayout>(R.id.slidersContainer)
         for (i in 1..CHAMBER_COUNT) {
-            appendChamberInputView()
+            appendChamberPressureInputView(i)
         }
 
         valuesTextView = findViewById<TextView>(R.id.valuesTextView)
-        updateValuesDisplay()
+        updateValuesDisplay(sendMessage = false)
     }
 
     override fun onDestroy() {
@@ -33,8 +33,8 @@ class MainActivity : AppCompatActivity() {
         udpManager.release()
     }
 
-    private fun appendChamberInputView() {
-        val sliderEditTextView = ChamberInputView(this).apply {
+    private fun appendChamberPressureInputView(idx: Int) {
+        val chamberPressureInputView = ChamberPressureInputView(this).apply {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
@@ -42,30 +42,33 @@ class MainActivity : AppCompatActivity() {
                 setMargins(0, 8, 0, 8)
             }
 
-            setOnValueChangeListener(object : ChamberInputView.OnValueChangeListener {
+            setOnValueChangeListener(object : ChamberPressureInputView.OnValueChangeListener {
                 override fun onValueChanged() {
                     updateValuesDisplay()
                 }
             })
         }
+        chamberPressureInputView.setChamberIndex(idx)
 
-        slidersContainer.addView(sliderEditTextView)
+        slidersContainer.addView(chamberPressureInputView)
     }
 
-    private fun updateValuesDisplay() {
+    private fun updateValuesDisplay(sendMessage: Boolean = true) {
         val values = getAllValues()
         valuesTextView.text = getString(
             R.string.chamber_inputs,
             values.joinToString(", ")
         )
-        val message = ProtocolMessage.PressureMessage(values)
-        val encodedMessage = ProtocolEncoder().encode(message)
-        udpManager.sendMessage(encodedMessage)
+        if (sendMessage) {
+            val message = ProtocolMessage.PressureMessage(values)
+            val encodedMessage = ProtocolEncoder().encode(message)
+            udpManager.sendMessage(encodedMessage)
+        }
     }
 
     private fun getAllValues(): List<Int> {
         return (0 until slidersContainer.childCount).map { index ->
-            val chamberInputView = slidersContainer.getChildAt(index) as ChamberInputView
+            val chamberInputView = slidersContainer.getChildAt(index) as ChamberPressureInputView
             chamberInputView.getValue()
         }
     }
