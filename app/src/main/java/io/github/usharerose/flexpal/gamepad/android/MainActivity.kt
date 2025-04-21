@@ -25,7 +25,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         valuesTextView = findViewById<TextView>(R.id.valuesTextView)
-        updateValuesDisplay()
+        updateValuesDisplay(sendMessage = false)
     }
 
     override fun onDestroy() {
@@ -53,15 +53,17 @@ class MainActivity : AppCompatActivity() {
         slidersContainer.addView(chamberPressureInputView)
     }
 
-    private fun updateValuesDisplay() {
+    private fun updateValuesDisplay(sendMessage: Boolean = true) {
         val values = getAllValues()
         valuesTextView.text = getString(
             R.string.chamber_inputs,
             values.joinToString(", ")
         )
-        val message = ProtocolMessage.PressureMessage(values)
-        val encodedMessage = ProtocolEncoder().encode(message)
-        udpManager.sendMessage(encodedMessage)
+        if (sendMessage) {
+            val message = ProtocolMessage.PressureMessage(values)
+            val encodedMessage = ProtocolEncoder().encode(message)
+            udpManager.sendMessage(encodedMessage)
+        }
     }
 
     private fun getAllValues(): List<Int> {
