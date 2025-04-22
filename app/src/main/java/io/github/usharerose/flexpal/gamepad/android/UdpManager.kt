@@ -3,21 +3,31 @@ package io.github.usharerose.flexpal.gamepad.android
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
-import android.util.Log
+import android.content.Context
+import android.app.Application
+import java.lang.ref.WeakReference
 
-class UdpManager private constructor() {
+class UdpManager private constructor(application: Application) {
 
+    private val applicationContext = application.applicationContext
     private var udpSocket: DatagramSocket? = null
     private var udpHost: String = UdpConstants.DEFAULT_HOST
     private var udpPort: Int = UdpConstants.DEFAULT_PORT
 
     companion object {
         @Volatile
-        private var instance: UdpManager? = null
+        private var instance: WeakReference<UdpManager>? = null
+        private const val PREFS_NAME = "udp_config"
+        private const val KEY_HOST = "host"
+        private const val KEY_PORT = "port"
 
-        fun getInstance(): UdpManager {
-            return instance ?: synchronized(this) {
-                instance ?: UdpManager().also { instance = it }
+        fun getInstance(context: Context): UdpManager {
+            val app = context.applicationContext as Application
+            return instance?.get() ?: synchronized(this) {
+                instance?.get() ?: UdpManager(app).also {
+                    instance = WeakReference(it)
+                    it.loadSavedConfig()
+                }
             }
         }
     }
@@ -50,10 +60,21 @@ class UdpManager private constructor() {
         }.start()
     }
 
+    private fun loadSavedConfig() {
+        val prefs = applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        this.udpHost = prefs.getString(KEY_HOST, UdpConstants.DEFAULT_HOST) ?: UdpConstants.DEFAULT_HOST
+        this.udpPort = prefs.getInt(KEY_PORT, UdpConstants.DEFAULT_PORT)
+    }
+
     fun updateConfig(host: String, port: Int) {
-        Log.i("UdpManager", "updateConfig: $host, $port")
         this.udpHost = host
         this.udpPort = port
+        val prefs = applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().apply {
+            putString(KEY_HOST, host)
+            putInt(KEY_PORT, port)
+            apply()
+        }
         recreateSocket()
     }
 

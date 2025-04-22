@@ -2,12 +2,10 @@ package io.github.usharerose.flexpal.gamepad.android
 
 import android.os.Bundle
 import android.widget.LinearLayout
-import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import io.github.usharerose.flexpal.gamepad.android.databinding.ChamberPressureInputFragmentBinding
 
 class ChamberPressureInputFragment : Fragment() {
@@ -20,7 +18,7 @@ class ChamberPressureInputFragment : Fragment() {
         const val CHAMBER_COUNT = 9
     }
 
-    private val udpManager = UdpManager.getInstance()
+    private val udpManager by lazy { UdpManager.getInstance(requireContext()) }
 
     override fun onCreateView(
         inflater: LayoutInflater,

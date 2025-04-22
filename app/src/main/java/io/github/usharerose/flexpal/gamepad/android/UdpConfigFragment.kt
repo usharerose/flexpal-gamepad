@@ -7,12 +7,15 @@ import android.view.ViewGroup
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import com.google.android.material.snackbar.Snackbar
 import io.github.usharerose.flexpal.gamepad.android.databinding.FragmentUdpConfigBinding
+
 class UdpConfigFragment : Fragment() {
 
     private lateinit var binding: FragmentUdpConfigBinding
     private val viewModel: UdpConfigViewModel by viewModels {
         UdpConfigViewModelFactory(
+            requireActivity().application,
             requireActivity().getSharedPreferences("udp_config", Context.MODE_PRIVATE)
         )
     }
@@ -21,7 +24,7 @@ class UdpConfigFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentUdpConfigBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -37,9 +40,10 @@ class UdpConfigFragment : Fragment() {
         binding.saveButton.setOnClickListener {
             val newConfig = UdpConfig(
                 host = binding.hostInput.text.toString(),
-                port = binding.portInput.text.toString().toIntOrNull() ?: 8080
+                port = binding.portInput.text.toString().toIntOrNull() ?: UdpConstants.DEFAULT_PORT
             )
             viewModel.updateUdpConfig(newConfig)
+            Snackbar.make(view, "Save Success", Snackbar.LENGTH_SHORT).show()
         }
     }
 }

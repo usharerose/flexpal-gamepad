@@ -5,16 +5,13 @@ import android.content.SharedPreferences
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 
-class UdpConfigViewModel(private val preferences: SharedPreferences) : ViewModel() {
+class UdpConfigViewModel(
+    application: Application,
+    private val preferences: SharedPreferences
+) : AndroidViewModel(application) {
 
-    companion object {
-        private const val DEFAULT_IP = "192.168.1.1"
-        private const val DEFAULT_PORT = 8080
-    }
-
-    private val udpManager = UdpManager.getInstance()
+    private val udpManager = UdpManager.getInstance(application)
     private val _udpConfig = MutableLiveData<UdpConfig>()
     val udpConfig: LiveData<UdpConfig> = _udpConfig
 
@@ -40,8 +37,8 @@ class UdpConfigViewModel(private val preferences: SharedPreferences) : ViewModel
 
     private fun loadSavedConfig(): UdpConfig {
         return UdpConfig(
-            host = preferences.getString("host", DEFAULT_IP) ?: DEFAULT_IP,
-            port = preferences.getInt("port", DEFAULT_PORT)
+            host = preferences.getString("host", UdpConstants.DEFAULT_HOST) ?: UdpConstants.DEFAULT_HOST,
+            port = preferences.getInt("port", UdpConstants.DEFAULT_PORT)
         )
     }
 }
